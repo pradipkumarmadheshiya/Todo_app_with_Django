@@ -15,11 +15,11 @@ class JWTAuthmiddleware:
         if request.path in self.excluded_paths or request.path.startswith("/admin/"):
             return self.get_response(request)
 
-        token=request.COOKIES.get("jwt")
+        token = request.COOKIES.get("jwt")
         payload=jwt.decode(token, "secret", algorithms=["HS256"])
         profile=Profile.objects.filter(user=payload["id"]).first()
         
-        if profile.user_type!="admin":
+        if profile.user_type!="admin" and request.method!="GET":
             # return Response({"message":"Unauthorised"}, status=status.HTTP_406_NOT_ACCEPTABLE)
             return JsonResponse({"message": "Unauthorised"}, status=status.HTTP_401_UNAUTHORIZED)
                  

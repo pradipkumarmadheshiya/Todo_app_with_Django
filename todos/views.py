@@ -2,12 +2,15 @@ from django.shortcuts import render
 from .models import Profile, Todo
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
+from django_filters.filters import OrderingFilter
 
 from .serializers import UserSerializer, TodoSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-import jwt, datetime
+from rest_framework import generics
+from rest_framework.pagination import PageNumberPagination
+import jwt, datetime, django_filters
 
 class RegisterView(APIView):
     def post(self, request):
@@ -50,6 +53,12 @@ class LoginView(APIView):
         return response
     
 class TodoView(APIView):
+
+    def get(self, request):
+        todos=Todo.objects.all()
+        serializer=TodoSerializer(todos, many=True)
+        return Response({"message":"All todos are here-", "data":serializer.data}, status=status.HTTP_200_OK)
+
     def post(self, request):
         
         request.data["user"]=request.admin.id
@@ -77,3 +86,16 @@ class TodoView(APIView):
         todo=Todo.objects.get(id=todoId)
         todo.delete()
         return Response({"message":"Todo deleted", "todo":TodoSerializer(todo).data}, status=status.HTTP_200_OK)
+    
+class CustomPagination(PageNumberPagination):
+    page_size = 2
+    page_size_query_param = 'page_size'
+    max_page_size = 10000
+
+class TodoListView(generics.ListAPIView):
+    queryset = Todo.objects.all()
+    serializer_class = TodoSerializer
+    filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
+    filterset_fields = ['name', 'status']
+    # ordering_fields =["created_at"]
+    pagination_class=CustomPagination
