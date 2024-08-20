@@ -3,6 +3,7 @@ from .models import Profile, Todo
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django_filters.filters import OrderingFilter
+from django.contrib.sites.shortcuts import get_current_site
 
 from .serializers import UserSerializer, TodoSerializer
 from rest_framework.views import APIView
@@ -10,6 +11,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import generics
 from rest_framework.pagination import PageNumberPagination
+from rest_framework_simplejwt.tokens import RefreshToken
 import jwt, datetime, django_filters
 
 class RegisterView(APIView):
@@ -99,3 +101,18 @@ class TodoListView(generics.ListAPIView):
     filterset_fields = ['name', 'status']
     # ordering_fields =["created_at"]
     pagination_class=CustomPagination
+
+class PasswordResetRequestView(APIView):
+
+    def post(self, request):
+        email=request.data["email"]
+        user=User.objects.get(email=email)
+        if not user:
+            return Response({"message":"User not registered"}, status=status.HTTP_406_NOT_ACCEPTABLE)
+        
+        refresh=RefreshToken.for_user(user)
+        token=str(refresh.access_token)
+        current_site=get_current_site(request)
+        print(current_site)
+
+        return Response("Helo!")

@@ -1,4 +1,4 @@
-from django.urls import reverse
+from django.urls import reverse, path
 from django.http import JsonResponse
 from .models import Profile
 from rest_framework.response import Response
@@ -9,10 +9,11 @@ class JWTAuthmiddleware:
 
     def __init__(self, get_response):
         self.get_response=get_response
-        self.excluded_paths=[reverse("register"), reverse("login")]
+        self.excluded_paths=[reverse("register"), reverse("login"), reverse("resetPassword")]
 
     def __call__(self, request):
-        if request.path in self.excluded_paths or request.path.startswith("/admin/"):
+        # if request.path in self.excluded_paths or request.path.startswith("/admin/") or request.path.startswith("/todos/"):
+        if any(request.path.startswith(path) for path in self.excluded_paths) or request.path.startswith("/admin/") or request.path.startswith("/todos/"):
             return self.get_response(request)
 
         token = request.COOKIES.get("jwt")
