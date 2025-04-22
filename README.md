@@ -1,0 +1,1 @@
+The ToDo App is a web application developed using Django, a Python web framework. It allows users to create, read, update, and delete tasks efficiently. This project showcases the use of Django’s models, views, templates and form handling to build a fully functional CRUD-based task manager.
